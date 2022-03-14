@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<body>
+
+
+<form id="selectform" onsubmit="return false;">
+</form>
+<p id="fetchTest"></p>
+
+<script>
+
+    const pageId = {{ pageId }};
+
+    // 初期処理
+    // csv選択肢取得
+    input_from_python = {{ input_from_python | tojson }};
+
+    // セレクトボックス作成
+    for(var x=0;x<input_from_python.length;x++){
+        select = document.createElement("select");
+        select.name = "sel";
+        select.class = "selClass";
+        // セレクトボックスのオプション作成
+        for(var i=0;i<input_from_python[x].length;i++){
+            let op = document.createElement("option");
+            op.value = input_from_python[x][i];
+            op.text = input_from_python[x][i];
+            select.appendChild(op);
+        }
+        document.getElementById("selectform").appendChild(select);
+
+    }
+
+    // ボタン作成（セレクトボックスの右端につけたいから）
+    button = document.createElement("input");;
+    button.type = "submit";
+    button.name = "submit";
+    button.id = "submit";
+    button.value = "送信";
+    document.getElementById("selectform").appendChild(button);
+
+
+    // 送信処理
+    submit.addEventListener('click', function(event){
+        // ボタングレーアウト（連投防止）
+        const button = document.getElementById("submit");
+        button.disabled = true;
+        // ５秒後に復活
+        setTimeout('button.disabled = false', 5000);
+
+        // 作成したセレクトボックスのvalueを配列にセット
+        const selList = document.getElementsByName("sel"); 
+        let postData = [];
+        for (const sel of selList) {
+            postData.push(sel.value);
+        }
+        console.log(postData);
+
+        // fetch apiで非同期送信
+        url = "/sign/" + pageId;
+        fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(postData), //jsonで送信
+            cache: "no-cache",
+            headers: new Headers({
+            "content-type": "application/json"
+            })
+        }).then((response) => {
+            if(!response.ok) {
+                console.log('error!');
+            } else{
+                console.log('ok!');
+            }
+        }).then((data)  => {
+            console.log(data);
+        }).catch((error) => {
+            console.log(error);
+        });
+        
+    });
+
+
+</script>
+
+</body>
+</html>
+

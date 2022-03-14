@@ -10,37 +10,31 @@ responseData = []
 
 datastore_client = datastore.Client()
 
-# datastore書き込み
-def store_sign(sign,dt):
-    entity = datastore.Entity(key=datastore_client.key('sign'))
-    entity.update({
-        'message': sign,
-        'timestamp': dt
-    })
-
-    datastore_client.put(entity)
-
-# datastore取得
-def fetch_sign(limit):
-    query = datastore_client.query(kind='sign')
-    query.order = ['-timestamp']
-
-    sign = list(query.fetch(limit=limit))
-
-    return sign
-
+# トップページ（ガイダンスページ）
 @app.route("/", methods=['GET'])
 def index():
+
+    return render_template("index.html")
+
+# 参加者用ページ
+@app.route("/visitor/<int:pageId>", methods=['GET'])
+def visitor(pageId):
 
     # CSVから項目取得しレスポンスに乗せる
     csv_content = read_csv("eldemsign")
     responseData = csv_content
-    print(responseData)
 
-    return render_template("index.html",input_from_python= responseData)
+    return render_template("visitor.html",pageId= pageId, input_from_python= responseData)
 
-@app.route('/sign', methods=['POST'])
-def post():
+# 主催者用ページ
+@app.route("/streamer/<int:pageId>", methods=['GET'])
+def streamer(pageId):
+    startDatetime = datetime.datetime.now(tz=datetime.timezone.utc)
+    return render_template("streamer.html",pageId= pageId,startDatetime= startDatetime)
+
+# サイン書き込み
+@app.route('/sign/<int:pageId>', methods=['POST'])
+def postsign(pageId):
     print(request.get_json())
 
     sign = ''
@@ -49,30 +43,33 @@ def post():
     csv_content = read_csv("eldemsign")
 
     for item in request.get_json():
-        print(item)
         result = False
         for i in csv_content:
-            print(i)
             if item in i:
-                print('true')
                 result = True
                 break
         if result == False:
-            print('err')
             return '',400
         
         sign += item
     
     # 問題なければデータストア書き込み
-    store_sign(sign,datetime.datetime.now(tz=datetime.timezone.utc))
-    # 取得テスト
-    aweawe = fetch_sign(10)
-    print(aweawe)
-    fetchSign = json.dumps(aweawe, default=json_serial)
-    
+    store_sign(pageId,sign,datetime.datetime.now(tz=datetime.timezone.utc))
 
-    return fetchSign,200
+    return '',200
 
+# サイン読み込み
+@app.route('/sign/<int:pageId>', methods=['GET'])
+def getsign(pageId):
+
+    req = request.args
+    startDatetime = req.get("startDatetime")
+
+    signs = fetch_sign(pageId,startDatetime,10)
+    fetchSigns = json.dumps(signs, default=json_serial)
+    return fetchSigns,200
+
+# csv読み込み
 def read_csv(filename):
     f = []
     csv_file = open("./csv/" + str(filename) + ".csv", "r", encoding="utf-8", errors="", newline="" )
@@ -84,6 +81,26 @@ def read_csv(filename):
 def json_serial(obj):
     return obj.isoformat()
 
+
+# datastore書き込み
+def store_sign(pageId,sign,dt):
+    entity = datastore.Entity(key=datastore_client.key('sign_' + str(pageId)))
+    entity.update({
+        'message': sign,
+        'timestamp': dt
+    })
+
+    datastore_client.put(entity)
+
+# datastore取得
+def fetch_sign(pageId,startDatetime,limit):
+    query = datastore_client.query(kind='sign_' + str(pageId))
+    #query.add_filter("timestamp", ">=", startDatetime)
+    query.order = ['-timestamp']
+
+    sign = list(query.fetch(limit=limit))
+
+    return sign
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App

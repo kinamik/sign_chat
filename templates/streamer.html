@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>signChat</title>
+    
+    <link rel="preconnect" href="https://fonts.gstatic.com"> 
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200&display=swap" rel="stylesheet">
+
+    <!-- cssの読み込み -->
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    </head>
+    
+<body>
+<p id="signText" class="sign_text"></p>
+
+<script>
+
+    const pageId = {{ pageId }};
+    const startDatetime = "{{ startDatetime }}";
+
+    // 10秒に一回最新サイン取得
+    setInterval("showRecentSign()", 10000);
+
+    // サイン表示処理
+    function signDisplay(jsonObj){
+        const obj = jsonObj;
+        const fetchTest = document.getElementById("signText");
+        fetchTest.innerHTML = '';
+
+        for (const key in obj) {
+            fetchTest.innerHTML += obj[key].message + '<br>';
+        }
+    }
+
+    //サイン取得処理
+    function showRecentSign(){
+        url = "/sign/"+ pageId +"?startDatetime=" + startDatetime;
+        fetch(url, {
+            method: 'GET',
+            cache: "no-cache",
+            headers: new Headers({
+            "content-type": "application/json"
+            })
+        }).then((response) => {
+            if(!response.ok) {
+                console.log('error!');
+            } else{
+                console.log('ok!');
+            }
+            return response.json()
+        }).then((result) => {
+            signDisplay(result);
+        }).then((data)  => {
+            console.log(data);
+        }).catch((error) => {
+            console.log(error);
+        });
+    }
+
+</script>
+
+</body>
+</html>
+
