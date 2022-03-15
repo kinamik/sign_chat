@@ -14,17 +14,21 @@
 <p>【使い方】</p>
 <p>①以下に適当な数字4桁を入力してください。</p>
 <input type="tel" id="pageId" name="pageId" required minlength="4" maxlength="4">
-<p>②以下のURLを公開してください。</p>
-<p id="visitorURL">（数字4桁を入力してください）</p>
-<p>③以下のURLを開き、OBS等で取り込んでください。</p>
+<br>
+<p>②以下のURLを開き、OBS等で取り込んでください。</p>
 <p id="streamerURL">（数字4桁を入力してください）</p>
-<p>取り込み方法はYoutubeのコメント欄等と同様です。同じく以下のCSSで透過処理を行えます。</p>
-<p>body {
-    overflow: hidden;
-    background-color: transparent !important;
-  }
+<p>取り込み方法はYoutubeのコメント欄等と同様です。同じく以下のCSSで透過処理を行えます。<br>
+    body {<br>
+    overflow: hidden;<br>
+    background-color: transparent !important;<br>
+  }<br>
 </p>
-
+<p>③以下のURLを公開してください。</p>
+<p id="visitorURL">（数字4桁を入力してください）</p>
+<br>
+<br>
+<br>
+<p>@henktrenkt</p>
 <script>
 
     pageId.addEventListener('input', function(event){
