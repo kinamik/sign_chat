@@ -11,15 +11,16 @@
     <!-- cssの読み込み -->
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
-    </head>
+</head>
     
 <body>
-<p id="signText" class="sign_text"></p>
-
+<p id="signText" class="sign_text">これはサンプル表示です。10秒ほどで消えます。<br>公開したURLから送信を行うとここに表示されます。</p>
 <script>
 
     const pageId = {{ pageId }};
     const startDatetime = "{{ startDatetime }}";
+    var fetchDatetime = startDatetime;
+    var date = new Date() ;
 
     // 10秒に一回最新サイン取得
     setInterval("showRecentSign()", 10000);
@@ -33,11 +34,15 @@
         for (const key in obj) {
             fetchTest.innerHTML += obj[key].message + '<br>';
         }
+
+        date = new Date() ;
+        fetchDatetime = Math.floor(date.getTime() / 1000 );
+        console.log(fetchDatetime);
     }
 
     //サイン取得処理
     function showRecentSign(){
-        url = "/sign/"+ pageId +"?startDatetime=" + startDatetime;
+        url = "/sign/"+ pageId +"?startDatetime=" + fetchDatetime;
         fetch(url, {
             method: 'GET',
             cache: "no-cache",

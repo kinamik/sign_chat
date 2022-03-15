@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>signChat</title>
+</head>
 
 <body>
 <p>使い方</p>
 <p>①以下に適当な数字4桁を入力してください。</p>
 <input type="tel" id="pageId" name="pageId" required minlength="4" maxlength="4">
 <p>②以下のURLを公開してください。</p>
-<p id="visitorURL">（ID未入力）</p>
+<p id="visitorURL">（数字4桁を入力してください）</p>
 <p>③以下のURLを開き、OBS等で取り込んでください。</p>
-<p id="streamerURL">（ID未入力）</p>
+<p id="streamerURL">（数字4桁を入力してください）</p>
 <p>取り込み方法はYoutubeのコメント欄等と同様です。同じく以下のCSSで透過処理を行えます。</p>
 <p>body {
     overflow: hidden;
@@ -22,9 +27,19 @@
 
         const pageId = document.getElementById("pageId");
         const visitorURL = document.getElementById("visitorURL");
-        visitorURL.innerHTML = 'http://127.0.0.1:8080/visitor/' + pageId.value;
         const streamerURL = document.getElementById("streamerURL");
-        streamerURL.innerHTML = 'http://127.0.0.1:8080/streamer/' + pageId.value;
+
+        if(String(pageId.value).length == 4 && isFinite(pageId.value)){
+
+            visitorURL.innerHTML = location.protocol + location.host + '/visitor/' +  pageId.value;
+            streamerURL.innerHTML = location.protocol + location.host + '/streamer/' + pageId.value;
+
+        } else {
+
+            visitorURL.innerHTML = '（数字4桁を入力してください）';
+            streamerURL.innerHTML = '（数字4桁を入力してください）';
+            
+        }
 
     });
 

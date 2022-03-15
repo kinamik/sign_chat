@@ -1,6 +1,7 @@
 import datetime
 import csv
 import json
+import time
 
 from flask import Flask, render_template, request, redirect
 from google.cloud import datastore
@@ -17,8 +18,13 @@ def index():
     return render_template("index.html")
 
 # 参加者用ページ
-@app.route("/visitor/<int:pageId>", methods=['GET'])
+@app.route("/visitor/<string:pageId>", methods=['GET'])
 def visitor(pageId):
+
+    checkRes = check_pageId(pageId)
+    if checkRes:
+        return checkRes,400
+    
 
     # CSVから項目取得しレスポンスに乗せる
     csv_content = read_csv("eldemsign")
@@ -27,15 +33,24 @@ def visitor(pageId):
     return render_template("visitor.html",pageId= pageId, input_from_python= responseData)
 
 # 主催者用ページ
-@app.route("/streamer/<int:pageId>", methods=['GET'])
+@app.route("/streamer/<string:pageId>", methods=['GET'])
 def streamer(pageId):
-    startDatetime = datetime.datetime.now(tz=datetime.timezone.utc)
+
+    checkRes = check_pageId(pageId)
+    if checkRes:
+        return checkRes,400
+
+    startDatetime = int(time.time())
     return render_template("streamer.html",pageId= pageId,startDatetime= startDatetime)
 
 # サイン書き込み
-@app.route('/sign/<int:pageId>', methods=['POST'])
+@app.route('/sign/<string:pageId>', methods=['POST'])
 def postsign(pageId):
     print(request.get_json())
+
+    checkRes = check_pageId(pageId)
+    if checkRes:
+        return checkRes,400
 
     sign = ''
 
@@ -54,13 +69,17 @@ def postsign(pageId):
         sign += item
     
     # 問題なければデータストア書き込み
-    store_sign(pageId,sign,datetime.datetime.now(tz=datetime.timezone.utc))
+    store_sign(pageId,sign,int(time.time()))
 
     return '',200
 
 # サイン読み込み
-@app.route('/sign/<int:pageId>', methods=['GET'])
+@app.route('/sign/<string:pageId>', methods=['GET'])
 def getsign(pageId):
+
+    checkRes = check_pageId(pageId)
+    if checkRes:
+        return checkRes,400
 
     req = request.args
     startDatetime = req.get("startDatetime")
@@ -95,12 +114,22 @@ def store_sign(pageId,sign,dt):
 # datastore取得
 def fetch_sign(pageId,startDatetime,limit):
     query = datastore_client.query(kind='sign_' + str(pageId))
-    #query.add_filter("timestamp", ">=", startDatetime)
+    query.add_filter("timestamp", ">=", int(startDatetime))
     query.order = ['-timestamp']
 
     sign = list(query.fetch(limit=limit))
-
     return sign
+
+# pageIdチェック
+def check_pageId(pageId):
+    if not pageId.isdigit():
+        return "pageId不正 数値4桁ではありません"
+
+    if len(pageId) != 4:
+        return "pageId不正 数値4桁ではありません"
+
+    return None
+    
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App
